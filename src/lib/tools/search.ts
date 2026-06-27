@@ -1,4 +1,4 @@
-import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
+import { TavilySearch } from "@langchain/tavily";
 
 /**
  * Creates a Tavily search tool instance.
@@ -13,9 +13,9 @@ export function createSearchTool(apiKey?: string) {
     );
   }
 
-  return new TavilySearchResults({
+  return new TavilySearch({
     maxResults: 5,
-    apiKey: key,
+    tavilyApiKey: key,
   });
 }
 
@@ -28,7 +28,7 @@ export async function tavilySearch(
   apiKey?: string
 ): Promise<string> {
   const tool = createSearchTool(apiKey);
-  const results = await tool.invoke(query);
+  const results = await tool.invoke({ query });
 
   // Results come back as a string from the tool
   if (typeof results === "string") {
