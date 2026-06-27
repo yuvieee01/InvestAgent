@@ -15,7 +15,7 @@ export function createLLM(apiKey?: string) {
   }
 
   return new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash-preview-05-20",
+    model: "gemini-2.5-flash",
     apiKey: key,
     temperature: 0.3,
     maxOutputTokens: 8192,
