@@ -5,15 +5,11 @@ import { useState } from "react";
 interface CompanySearchProps {
   onSearch: (company: string) => void;
   isLoading: boolean;
-  searchCount: number;
-  freeLimit: number;
 }
 
 export default function CompanySearch({
   onSearch,
   isLoading,
-  searchCount,
-  freeLimit,
 }: CompanySearchProps) {
   const [query, setQuery] = useState("");
 
@@ -25,7 +21,7 @@ export default function CompanySearch({
     }
   };
 
-  const remaining = Math.max(0, freeLimit - searchCount);
+
 
   return (
     <div className="search-container">
@@ -59,16 +55,6 @@ export default function CompanySearch({
           )}
         </button>
       </form>
-      <p className="search-hint">
-        {remaining > 0 ? (
-          <>
-            <span className="search-counter">{remaining}</span> free{" "}
-            {remaining === 1 ? "search" : "searches"} remaining
-          </>
-        ) : (
-          <>Using your API keys</>
-        )}
-      </p>
     </div>
   );
 }

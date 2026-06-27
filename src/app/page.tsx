@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import CompanySearch from "./components/CompanySearch";
 import ResearchTimeline from "./components/ResearchTimeline";
 import DecisionCard from "./components/DecisionCard";
-import ApiKeyModal from "./components/ApiKeyModal";
 
 interface TimelineStep {
   node: string;
@@ -35,35 +34,11 @@ const PIPELINE_STEPS = [
   { node: "makeDecision", label: "⚖️ Making investment decision..." },
 ];
 
-const FREE_LIMIT = 3;
-
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [timelineSteps, setTimelineSteps] = useState<TimelineStep[]>([]);
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [searchCount, setSearchCount] = useState(0);
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [userKeys, setUserKeys] = useState<{
-    google: string;
-    tavily: string;
-  } | null>(null);
-  const [pendingCompany, setPendingCompany] = useState<string | null>(null);
-
-  // Load search count and keys from localStorage
-  useEffect(() => {
-    const savedCount = localStorage.getItem("investAgent_searchCount");
-    if (savedCount) setSearchCount(parseInt(savedCount, 10));
-
-    const savedKeys = localStorage.getItem("investAgent_userKeys");
-    if (savedKeys) {
-      try {
-        setUserKeys(JSON.parse(savedKeys));
-      } catch {
-        // ignore invalid JSON
-      }
-    }
-  }, []);
 
   const runResearch = useCallback(
     async (company: string) => {
@@ -85,31 +60,15 @@ export default function Home() {
       );
 
       try {
-        const currentCount = searchCount;
-
         const response = await fetch("/api/research", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-search-count": currentCount.toString(),
           },
           body: JSON.stringify({
             company,
-            userGoogleKey:
-              currentCount >= FREE_LIMIT ? userKeys?.google : undefined,
-            userTavilyKey:
-              currentCount >= FREE_LIMIT ? userKeys?.tavily : undefined,
           }),
         });
-
-        if (response.status === 402) {
-          // Need API keys
-          setPendingCompany(company);
-          setShowKeyModal(true);
-          setIsLoading(false);
-          setTimelineSteps([]);
-          return;
-        }
 
         if (!response.ok) {
           const errData = await response.json();
@@ -235,11 +194,6 @@ export default function Home() {
         if (finalResult) {
           setResult(finalResult);
         }
-
-        // Increment search count
-        const newCount = currentCount + 1;
-        setSearchCount(newCount);
-        localStorage.setItem("investAgent_searchCount", newCount.toString());
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"
@@ -249,39 +203,14 @@ export default function Home() {
         setIsLoading(false);
       }
     },
-    [searchCount, userKeys]
+    []
   );
 
   const handleSearch = useCallback(
     (company: string) => {
-      // Check if keys are needed
-      if (searchCount >= FREE_LIMIT && !userKeys) {
-        setPendingCompany(company);
-        setShowKeyModal(true);
-        return;
-      }
       runResearch(company);
     },
-    [searchCount, userKeys, runResearch]
-  );
-
-  const handleKeySave = useCallback(
-    (googleKey: string, tavilyKey: string) => {
-      const keys = { google: googleKey, tavily: tavilyKey };
-      setUserKeys(keys);
-      localStorage.setItem("investAgent_userKeys", JSON.stringify(keys));
-      setShowKeyModal(false);
-
-      // If there was a pending search, run it now
-      if (pendingCompany) {
-        // Small delay to allow state to update
-        setTimeout(() => {
-          runResearch(pendingCompany);
-          setPendingCompany(null);
-        }, 100);
-      }
-    },
-    [pendingCompany, runResearch]
+    [runResearch]
   );
 
   return (
@@ -303,8 +232,6 @@ export default function Home() {
       <CompanySearch
         onSearch={handleSearch}
         isLoading={isLoading}
-        searchCount={searchCount}
-        freeLimit={FREE_LIMIT}
       />
 
       {/* Error */}
@@ -329,17 +256,6 @@ export default function Home() {
           reasoning={result.reasoning}
           bullishFactors={result.bullishFactors}
           bearishFactors={result.bearishFactors}
-        />
-      )}
-
-      {/* API Key Modal */}
-      {showKeyModal && (
-        <ApiKeyModal
-          onSave={handleKeySave}
-          onCancel={() => {
-            setShowKeyModal(false);
-            setPendingCompany(null);
-          }}
         />
       )}
     </div>

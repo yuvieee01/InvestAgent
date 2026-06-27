@@ -10,7 +10,7 @@ export const maxDuration = 300; // 5 minutes to accommodate rate-limit retries
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { company, userGoogleKey, userTavilyKey } = body;
+    const { company } = body;
 
     if (!company || typeof company !== "string") {
       return new Response(
@@ -19,29 +19,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check search count from header (managed by frontend)
-    const searchCount = parseInt(
-      req.headers.get("x-search-count") || "0",
-      10
-    );
-    const freeLimit = parseInt(
-      process.env.FREE_SEARCH_LIMIT || "3",
-      10
-    );
 
-    // After free limit, require user keys
-    if (searchCount >= freeLimit) {
-      if (!userGoogleKey || !userTavilyKey) {
-        return new Response(
-          JSON.stringify({
-            error: "API_KEYS_REQUIRED",
-            message:
-              "Free searches exhausted. Please provide your own API keys.",
-          }),
-          { status: 402, headers: { "Content-Type": "application/json" } }
-        );
-      }
-    }
 
     const encoder = new TextEncoder();
 
@@ -64,10 +42,6 @@ export async function POST(req: NextRequest) {
           const streamEvents = investmentGraph.streamEvents(
             {
               company,
-              userGoogleKey:
-                searchCount < freeLimit ? undefined : userGoogleKey,
-              userTavilyKey:
-                searchCount < freeLimit ? undefined : userTavilyKey,
             },
             { version: "v2" }
           );
