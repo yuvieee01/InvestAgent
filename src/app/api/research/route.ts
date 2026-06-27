@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { investmentGraph } from "@/lib/graph/graph";
 
-export const maxDuration = 120; // Allow up to 2 minutes for the full graph
+export const maxDuration = 300; // 5 minutes to accommodate rate-limit retries
 
 /**
  * Streaming SSE endpoint that runs the investment research graph.
