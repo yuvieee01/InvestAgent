@@ -1,6 +1,6 @@
 # InvestAgent — AI-Powered Investment Research Agent
 
-> **Live Demo:** [investment-agent-one.vercel.app](https://investment-agent-one.vercel.app/)
+> **Live Demo:** [investment-agent-one.vercel.app](https://investagent-python.vercel.app/)
 
 An autonomous multi-agent system that researches any public company in real time and delivers a structured **INVEST / PASS / MONITOR** verdict with confidence scoring, bullish/bearish factor analysis, and full reasoning — powered by a LangGraph agent pipeline, Tavily web search, and Google Gemini LLMs.
 
